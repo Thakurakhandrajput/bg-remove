@@ -7,8 +7,15 @@ import io
 app = Flask(__name__)
 CORS(app)
 
-# Yahan humne Lite AI model (u2netp) set kiya hai jo 512MB RAM mein aaram se chalega
-lite_session = new_session("u2netp")
+# Session ko abhi None rakha hai (Lazy Loading)
+lite_session = None
+
+def get_session():
+    global lite_session
+    if lite_session is None:
+        # Jab pehli photo aayegi, tab ye on hoga
+        lite_session = new_session("u2netp")
+    return lite_session
 
 @app.route('/')
 def home():
@@ -22,8 +29,8 @@ def remove_background():
     file = request.files['image']
     img = Image.open(file.stream)
     
-    # AI ko batana ki lite engine se background hatao
-    result = remove(img, session=lite_session)
+    # Background hatana using lazy loaded session
+    result = remove(img, session=get_session())
     
     img_io = io.BytesIO()
     result.save(img_io, 'PNG')
