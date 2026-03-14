@@ -1,12 +1,14 @@
 from flask import Flask, request, send_file
 from flask_cors import CORS
-from rembg import remove
+from rembg import remove, new_session
 from PIL import Image
 import io
 
 app = Flask(__name__)
-# Mobile frontend ko connect karne ki permission
 CORS(app)
+
+# Yahan humne Lite AI model (u2netp) set kiya hai jo 512MB RAM mein aaram se chalega
+lite_session = new_session("u2netp")
 
 @app.route('/')
 def home():
@@ -20,10 +22,9 @@ def remove_background():
     file = request.files['image']
     img = Image.open(file.stream)
     
-    # AI Background removal
-    result = remove(img)
+    # AI ko batana ki lite engine se background hatao
+    result = remove(img, session=lite_session)
     
-    # Transparent image wapas bhejna
     img_io = io.BytesIO()
     result.save(img_io, 'PNG')
     img_io.seek(0)
